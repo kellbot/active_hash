@@ -24,6 +24,24 @@ module ActiveHash
         end
       end
 
+      def has_one(association_id, options = {})
+
+        define_method(association_id) do
+          options = {
+            :class_name => association_id.to_s.classify,
+            :foreign_key => self.class.to_s.foreign_key
+          }.merge(options)
+
+          klass = options[:class_name].constantize
+
+          if klass.respond_to?(:scoped)
+            klass.scoped(:conditions => { options[:foreign_key] => id })
+          else
+            klass.send("find_by_#{options[:foreign_key]}", id)
+          end
+        end
+      end
+
       def belongs_to(association_id, options = {})
 
         options = {
